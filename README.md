@@ -1,6 +1,6 @@
 # 🎫 PassCheck By DM
 
-<img width="903" height="910" alt="favicon" src="https://github.com/user-attachments/assets/43b37584-5543-45fc-9f44-9e8efde60c24" />
+<img width="150" height="150" alt="favicon" src="https://github.com/user-attachments/assets/43b37584-5543-45fc-9f44-9e8efde60c24" />
 
 > A mobile-first, PWA-enabled QR Code Pass Generator, Sharing Engine, and Gatekeeper Scanner built in classic **iOS 6 Skeuomorphic** style.
 
