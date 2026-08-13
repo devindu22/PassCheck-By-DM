@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PassCheck</title>
+    
+    <!-- iOS Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PassCheck">
+    <meta name="theme-color" content="#3b4e61">
+    
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+    <style>
+        :root {
+            --ios-bg: #d8dee6;
+            --ios-card-bg: #ffffff;
+            --ios-border: #a7b0be;
+            --ios-text: #000000;
+            --ios-subtext: #666666;
+            --ios-header-from: #b0c4de;
+            --ios-header-mid1: #6d84a2;
+            --ios-header-mid2: #2f4560;
+            --ios-header-to: #455d78;
+            --ios-blue-btn-top: #7da5d9;
+            --ios-blue-btn-bot: #1f427c;
+        }
+
+        .dark-mode {
+            --ios-bg: #1c2128;
+            --ios-card-bg: #2d333b;
+            --ios-border: #444c56;
+            --ios-text: #ffffff;
+            --ios-subtext: #adbac7;
+            --ios-header-from: #3a424b;
+            --ios-header-mid1: #22272e;
+            --ios-header-mid2: #181b20;
+            --ios-header-to: #22272e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--ios-bg);
+            /* Classic iOS 6 Subtle Linen / Textured Pattern */
+            background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 2px),
+                              repeating-linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 2px);
+            color: var(--ios-text);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        /* iOS 6 Glossy Navigation Header */
+        .ios-header {
+            background: linear-gradient(180deg, var(--ios-header-from) 0%, var(--ios-header-mid1) 50%, var(--ios-header-mid2) 51%, var(--ios-header-to) 100%);
+            border-bottom: 1px solid #1a2530;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .ios-header-title {
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7);
+        }
+
+        /* iOS 6 Segmented Navigation Control */
+        .ios-segmented-container {
+            background: linear-gradient(180deg, #9caec3 0%, #687e97 100%);
+            padding: 3px;
+            border-radius: 6px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.4);
+        }
+
+        .ios-segmented-btn {
+            background: linear-gradient(180deg, #e0e8f0 0%, #c0d0e0 50%, #9cb0c8 51%, #88a0bc 100%);
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 13px;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+            border-right: 1px solid #56697d;
+            transition: all 0.1s ease;
+        }
+
+        .ios-segmented-btn:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+        .ios-segmented-btn:last-child { border-right: none; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+
+        .ios-segmented-btn.active {
+            background: linear-gradient(180deg, #607998 0%, #3e5573 50%, #293e58 51%, #1f3046 100%);
+            color: #ffffff;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.8);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+        }
+
+        /* Grouped Table View / Pass Card */
+        .ios-grouped-box {
+            background-color: var(--ios-card-bg);
+            border: 1px solid var(--ios-border);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+            overflow: hidden;
+        }
+
+        .ios-list-row {
+            border-bottom: 1px solid var(--ios-border);
+        }
+        .ios-list-row:last-child {
+            border-bottom: none;
+        }
+
+        /* iOS 6 Glossy Buttons */
+        .ios-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.45);
+            cursor: pointer;
+            active: transform scale(0.98);
+        }
+
+        .ios-btn-blue {
+            background: linear-gradient(180deg, #7da5d9 0%, #4775b3 50%, #29579e 51%, #1f427c 100%);
+            border: 1px solid #163261;
+            color: white;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.6);
+        }
+
+        .ios-btn-green {
+            background: linear-gradient(180deg, #8ad168 0%, #58b030 50%, #3e9919 51%, #2c7510 100%);
+            border: 1px solid #1d5209;
+            color: white;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.6);
+        }
+
+        .ios-btn-red {
+            background: linear-gradient(180deg, #f38383 0%, #d23d3d 50%, #bc1e1e 51%, #981010 100%);
+            border: 1px solid #6b0c0c;
+            color: white;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.6);
+        }
+
+        .ios-btn-silver {
+            background: linear-gradient(180deg, #ffffff 0%, #ececec 50%, #d5d5d5 51%, #c0c0c0 100%);
+            border: 1px solid #8e8e8e;
+            color: #333333;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        /* Passbook Ticket Styles */
+        .ios-passbook-ticket {
+            background: linear-gradient(180deg, #1d2b3a 0%, #121a24 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #334455;
+        }
+
+        /* High Crispness QR Canvas */
+        #qrCanvas {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* HUD Popup Backdrop */
+        .ios-hud-overlay {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+        }
+
+        .ios-hud-box {
+            background: linear-gradient(180deg, rgba(40,40,40,0.92) 0%, rgba(20,20,20,0.95) 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* Animated Scanner Reticle */
+        @keyframes scanBeam {
+            0% { top: 5%; opacity: 0.3; }
+            50% { top: 90%; opacity: 1; }
+            100% { top: 5%; opacity: 0.3; }
+        }
+        .scanner-beam {
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00ff66, transparent);
+            box-shadow: 0 0 12px #00ff66;
+            animation: scanBeam 2.2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center pb-6">
+
+    <!-- Main Mobile Container Frame -->
+    <div class="w-full max-w-md min-h-screen flex flex-col bg-transparent shadow-2xl relative overflow-hidden">
+        
+        <!-- iOS Top Header Bar -->
+        <header class="ios-header px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-qrcode text-xl text-blue-200"></i>
+                <span class="ios-header-title text-lg tracking-tight">PassCheck</span>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="ios-btn ios-btn-silver text-xs px-2.5 py-1">
+                    <i class="fa-solid fa-moon text-slate-700"></i>
+                </button>
+                <!-- Quick PWA Install Button -->
+                <button id="pwaInstallBtn" onclick="installPWA()" class="ios-btn ios-btn-green text-xs px-2.5 py-1 hidden">
+                    <i class="fa-solid fa-download mr-1"></i> Install
+                </button>
+            </div>
+        </header>
+
+        <!-- iOS Segmented Navigation Tab Switcher -->
+        <div class="px-4 py-2.5 z-20">
+            <div class="ios-segmented-container grid grid-cols-3 text-center">
+                <button id="tabNavCreator" onclick="switchTab('creator')" class="ios-segmented-btn py-1.5 active">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Create
+                </button>
+                <button id="tabNavPasses" onclick="switchTab('passes')" class="ios-segmented-btn py-1.5">
+                    <i class="fa-solid fa-ticket mr-1"></i> Tickets (<span id="passCountBadge">0</span>)
+                </button>
+                <button id="tabNavScanner" onclick="switchTab('scanner')" class="ios-segmented-btn py-1.5">
+                    <i class="fa-solid fa-camera mr-1"></i> Gatekeeper
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 1: PASS CREATOR & TICKET BUILDER -->
+        <main id="viewCreator" class="px-4 py-2 flex-1 space-y-4">
+            
+            <!-- Event & Attendee Info Grouped Form -->
+            <div class="ios-grouped-box p-3 space-y-3">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">
+                    Event Pass Details
+                </div>
+
+                <div class="space-y-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1 opacity-80">Event Name</label>
+                        <input type="text" id="inputEventName" value="Tech Summit 2026 VIP Pass" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-80">Attendee Name</label>
+                            <input type="text" id="inputAttendeeName" placeholder="e.g. John Doe" value="Devindu Malshan" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-80">Phone Number</label>
+                            <input type="tel" id="inputPhone" placeholder="+1 555-0199" value="+94 (70) 234-5678" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-80">Seat / Section</label>
+                            <input type="text" id="inputSeat" placeholder="e.g. Row A, Seat 14" value="Row B - Seat 12" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-80">Access Tier</label>
+                            <select id="inputAccessTier" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="VIP Access">VIP Access</option>
+                                <option value="General Admission" selected>General Admission</option>
+                                <option value="Backstage Pass">Backstage Pass</option>
+                                <option value="Press / Staff">Press / Staff</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Custom Extra Field -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-80">Custom Field Label</label>
+                            <input type="text" id="inputCustomLabel" placeholder="e.g. Meal Preference" value="Gate Door" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1 opacity-80">Custom Value</label>
+                            <input type="text" id="inputCustomValue" placeholder="e.g. Vegan / Gate 4" value="North Entrance 2" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="generatePassbookTicket()" class="ios-btn ios-btn-blue w-full py-2.5 text-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Generate QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Passbook Preview Card Display -->
+            <div id="passbookPreviewWrapper" class="space-y-3">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">
+                    Passbook Preview
+                </div>
+
+                <div id="passbookCard" class="ios-passbook-ticket p-4 space-y-4 shadow-xl">
+                    <!-- Header Strip -->
+                    <div class="flex justify-between items-start border-b border-slate-700/60 pb-3">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-blue-300 block">EVENT TICKET</span>
+                            <h3 id="cardEventTitle" class="font-extrabold text-base leading-tight text-white">Tech Summit 2026 VIP Pass</h3>
+                        </div>
+                        <span id="cardAccessBadge" class="bg-amber-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">
+                            VIP ACCESS
+                        </span>
+                    </div>
+
+                    <!-- Attendee Grid Details -->
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-[10px] uppercase text-slate-400 block font-semibold">ATTENDEE</span>
+                            <span id="cardAttendee" class="font-bold text-sm text-slate-100">Devindu Malshan</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase text-slate-400 block font-semibold">PHONE</span>
+                            <span id="cardPhone" class="font-medium text-slate-200">+94 (70) 234-5678</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase text-slate-400 block font-semibold">SEAT / LOCATION</span>
+                            <span id="cardSeat" class="font-bold text-slate-100">Row B - Seat 12</span>
+                        </div>
+                        <div>
+                            <span id="cardCustomLabel" class="text-[10px] uppercase text-slate-400 block font-semibold">GATE DOOR</span>
+                            <span id="cardCustomValue" class="font-bold text-slate-100">North Entrance 2</span>
+                        </div>
+                    </div>
+
+                    <!-- High Resolution Crisp QR Code Center Display -->
+                    <div class="bg-white p-3 rounded-xl flex flex-col items-center justify-center space-y-2 shadow-inner">
+                        <canvas id="qrCanvas" class="w-44 h-44 rounded object-contain"></canvas>
+                        <span id="cardTicketID" class="font-mono text-xs text-slate-800 font-bold tracking-widest">TKT-9831-2026</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-800">
+                        <span>Issued: <span id="cardIssuedTime">Today</span></span>
+                        <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-shield-halved mr-1"></i> Authentic QR</span>
+                    </div>
+                </div>
+
+                <!-- Pass Action Buttons: Share / Save / Download -->
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="shareTicket()" class="ios-btn ios-btn-green py-2 text-xs">
+                        <i class="fa-solid fa-share-nodes mr-1.5"></i> Share Ticket
+                    </button>
+                    <button onclick="downloadTicketImage()" class="ios-btn ios-btn-silver py-2 text-xs">
+                        <i class="fa-solid fa-download mr-1.5"></i> Save Image
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB 2: STORED TICKETS REGISTRY -->
+        <main id="viewPasses" class="px-4 py-2 flex-1 space-y-4 hidden">
+            <div class="flex justify-between items-center px-1">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    Issued Tickets Database
+                </span>
+                <button onclick="clearAllTickets()" class="text-xs text-red-600 dark:text-red-400 underline font-semibold">
+                    Clear Database
+                </button>
+            </div>
+
+            <!-- Ticket List Table -->
+            <div id="ticketsListContainer" class="ios-grouped-box divide-y divide-slate-200 dark:divide-slate-700">
+                <!-- Dynamic List Rendered via JS -->
+            </div>
+        </main>
+
+        <!-- TAB 3: GATEKEEPER QR SCANNER & VERIFIER -->
+        <main id="viewScanner" class="px-4 py-2 flex-1 space-y-3 hidden">
+            
+            <!-- Gatekeeper Mode Selector Card -->
+            <div class="ios-grouped-box p-3 space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Gate Verification Mode</span>
+                    <span id="scanStatusIndicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Ready</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button id="btnModeQuick" onclick="setScanMode('quick')" class="ios-btn ios-btn-blue py-1.5 text-xs">
+                        <i class="fa-solid fa-bolt mr-1"></i> Quick Door Gate
+                    </button>
+                    <button id="btnModeDetail" onclick="setScanMode('detail')" class="ios-btn ios-btn-silver py-1.5 text-xs">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Full Details Modal
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video Camera Viewport -->
+            <div class="relative bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-slate-700 aspect-square flex items-center justify-center">
+                <video id="cameraVideo" class="w-full h-full object-cover" playsinline></video>
+                <canvas id="scanCanvas" class="hidden"></canvas>
+
+                <!-- Reticle Overlay -->
+                <div class="absolute inset-0 border-2 border-white/20 rounded-xl pointer-events-none flex items-center justify-center">
+                    <div class="w-56 h-56 border-2 border-emerald-400 rounded-lg relative flex items-center justify-center bg-emerald-500/5">
+                        <div class="scanner-beam"></div>
+                        <!-- Corner Crosshairs -->
+                        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald-400"></div>
+                        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-emerald-400"></div>
+                        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald-400"></div>
+                        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald-400"></div>
+                    </div>
+                </div>
+
+                <!-- Camera Switch & Flash Controls -->
+                <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center z-10">
+                    <button onclick="toggleTorch()" class="bg-slate-900/80 text-white p-2.5 rounded-full text-xs backdrop-blur border border-white/20">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </button>
+
+                    <label for="qrFileInput" class="bg-slate-900/80 text-white px-3 py-1.5 rounded-full text-xs backdrop-blur border border-white/20 cursor-pointer">
+                        <i class="fa-solid fa-image mr-1"></i> Upload Image
+                    </label>
+                    <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+
+                    <button onclick="switchCamera()" class="bg-slate-900/80 text-white p-2.5 rounded-full text-xs backdrop-blur border border-white/20">
+                        <i class="fa-solid fa-camera-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Last Scanned Result Quick Bar -->
+            <div id="lastScannedBar" class="ios-grouped-box p-3 hidden space-y-1">
+                <div class="text-[10px] font-bold text-slate-400 uppercase">Last Scanned Pass</div>
+                <div id="lastScannedText" class="text-xs font-semibold truncate text-slate-800 dark:text-slate-200">
+                    No scan recorded
+                </div>
+            </div>
+        </main>
+
+        <!-- MODAL 1: GATEKEEPER QUICK ACCESS HUD OVERLAY -->
+        <div id="hudGateModal" class="fixed inset-0 ios-hud-overlay z-50 flex items-center justify-center p-6 hidden">
+            <div id="hudBox" class="ios-hud-box w-full max-w-xs p-6 text-center space-y-4 transform transition-transform scale-95">
+                
+                <!-- Huge iOS Checkmark or Cross Icon -->
+                <div id="hudIconContainer" class="w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-lg border-2">
+                    <i id="hudIcon" class="fa-solid text-5xl"></i>
+                </div>
+
+                <div>
+                    <h2 id="hudTitle" class="text-xl font-extrabold text-white tracking-wide">ACCESS GRANTED</h2>
+                    <p id="hudSubtitle" class="text-xs text-slate-300 mt-1 font-medium">Valid Ticket Verified</p>
+                </div>
+
+                <!-- Ticket Details Summary inside HUD -->
+                <div id="hudDetailBox" class="bg-black/40 rounded-lg p-3 text-left text-xs space-y-1 text-slate-200 border border-white/10">
+                    <div><span class="text-slate-400">Name:</span> <strong id="hudName">-</strong></div>
+                    <div><span class="text-slate-400">Seat:</span> <span id="hudSeat">-</span></div>
+                    <div><span class="text-slate-400">Access:</span> <span id="hudAccess" class="text-amber-300 font-bold">-</span></div>
+                    <div><span class="text-slate-400">Ticket ID:</span> <span id="hudTicketId" class="font-mono text-[11px]">-</span></div>
+                </div>
+
+                <button onclick="closeHudModal()" class="ios-btn ios-btn-silver w-full py-2 text-xs">
+                    Dismiss HUD
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL 2: TICKET FULL DETAILS VIEW POPUP -->
+        <div id="detailModal" class="fixed inset-0 ios-hud-overlay z-50 flex items-center justify-center p-4 hidden">
+            <div class="ios-grouped-box w-full max-w-sm p-4 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-extrabold text-base">Passbook Ticket Details</h3>
+                    <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div id="modalTicketCard" class="space-y-3">
+                    <!-- Ticket Pass Rendered dynamically -->
+                </div>
+
+                <div id="modalActions" class="space-y-2 pt-2">
+                    <button id="modalCheckInBtn" onclick="toggleModalCheckIn()" class="ios-btn ios-btn-green w-full py-2.5 text-xs">
+                        <i class="fa-solid fa-check-double mr-1.5"></i> Check-In Attendee
+                    </button>
+                    <button id="modalDeleteBtn" onclick="deleteActiveModalTicket()" class="ios-btn ios-btn-red w-full py-2.5 text-xs">
+                        <i class="fa-solid fa-trash-can mr-1.5"></i> Delete Ticket
+                    </button>
+                    <button onclick="closeDetailModal()" class="ios-btn ios-btn-silver w-full py-2 text-xs">
+                        Close Modal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Footer Info -->
+        <footer class="text-center text-[10px] text-slate-500 py-2">
+            PassCheck By Devindu Malshan • Off-line Gatekeeper Verification
+        </footer>
+    </div>
+
+    <script>
+        /* ===================================================================
+           GLOBAL STATE & STORAGE MANAGEMENT
+           =================================================================== */
+        let ticketsDatabase = JSON.parse(localStorage.getItem('passcheck_tickets') || '[]');
+        let currentTicket = null;
+        let scanMode = 'quick'; // 'quick' or 'detail'
+        let cameraStream = null;
+        let activeFacingMode = 'environment';
+        let isTorchOn = false;
+        let scanningActive = false;
+        let activeModalTicket = null;
+        let deferredPWAInstallPrompt = null;
+
+        // Initialize Audio Context for iOS Synth Chimes
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        /* ===================================================================
+           SYNTHESIZED AUDIO CHIMES (WEB AUDIO API)
+           =================================================================== */
+        function playChime(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'success') {
+                    // Crisp iOS Success Dual Chime (E5 -> A5)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(659.25, now); // E5
+                    osc.frequency.setValueAtTime(880.00, now + 0.12); // A5
+                    
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'error') {
+                    // iOS Error Buzz Tone
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(160, now + 0.15);
+
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch(e) {
+                console.log('Audio playback error:', e);
+            }
+        }
+
+        /* ===================================================================
+           TAB NAVIGATION & THEME CONTROLS
+           =================================================================== */
+        function switchTab(tab) {
+            document.getElementById('viewCreator').classList.add('hidden');
+            document.getElementById('viewPasses').classList.add('hidden');
+            document.getElementById('viewScanner').classList.add('hidden');
+
+            document.getElementById('tabNavCreator').classList.remove('active');
+            document.getElementById('tabNavPasses').classList.remove('active');
+            document.getElementById('tabNavScanner').classList.remove('active');
+
+            if (tab === 'creator') {
+                document.getElementById('viewCreator').classList.remove('hidden');
+                document.getElementById('tabNavCreator').classList.add('active');
+                stopCamera();
+            } else if (tab === 'passes') {
+                document.getElementById('viewPasses').classList.remove('hidden');
+                document.getElementById('tabNavPasses').classList.add('active');
+                renderTicketsList();
+                stopCamera();
+            } else if (tab === 'scanner') {
+                document.getElementById('viewScanner').classList.remove('hidden');
+                document.getElementById('tabNavScanner').classList.add('active');
+                startCamera();
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('passcheck_theme', isDark ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('passcheck_theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        /* ===================================================================
+           HIGH RES CRISP QR CODE & PASSBOOK GENERATOR
+           =================================================================== */
+        function generatePassbookTicket() {
+            const eventName = document.getElementById('inputEventName').value.trim() || 'Event Pass';
+            const attendee = document.getElementById('inputAttendeeName').value.trim() || 'Guest';
+            const phone = document.getElementById('inputPhone').value.trim() || 'N/A';
+            const seat = document.getElementById('inputSeat').value.trim() || 'General';
+            const accessTier = document.getElementById('inputAccessTier').value;
+            const customLabel = document.getElementById('inputCustomLabel').value.trim() || 'Info';
+            const customValue = document.getElementById('inputCustomValue').value.trim() || 'N/A';
+
+            // Generate unique ticket ID
+            const ticketID = 'TKT-' + Math.floor(1000 + Math.random() * 9000) + '-' + new Date().getFullYear();
+            const issuedAt = new Date().toLocaleString();
+
+            currentTicket = {
+                id: ticketID,
+                event: eventName,
+                name: attendee,
+                phone: phone,
+                seat: seat,
+                access: accessTier,
+                customLabel: customLabel,
+                customValue: customValue,
+                issuedAt: issuedAt,
+                checkedIn: false,
+                checkInTime: null
+            };
+
+            renderTicketPreview(currentTicket);
+
+            // Save to Local Database ONLY on manual generation
+            saveTicketToDb(currentTicket);
+        }
+
+        function renderTicketPreview(ticket) {
+            currentTicket = ticket;
+
+            // Update DOM Card elements
+            document.getElementById('cardEventTitle').innerText = ticket.event;
+            document.getElementById('cardAttendee').innerText = ticket.name;
+            document.getElementById('cardPhone').innerText = ticket.phone;
+            document.getElementById('cardSeat').innerText = ticket.seat;
+            document.getElementById('cardAccessBadge').innerText = ticket.access.toUpperCase();
+            document.getElementById('cardCustomLabel').innerText = (ticket.customLabel || 'Info').toUpperCase();
+            document.getElementById('cardCustomValue').innerText = ticket.customValue || 'N/A';
+            document.getElementById('cardTicketID').innerText = ticket.id;
+            document.getElementById('cardIssuedTime').innerText = ticket.issuedAt;
+
+            // Render Crisp High-DPI QR Code (500px resolution scaled cleanly)
+            const qrPayload = JSON.stringify({
+                app: "PassCheck",
+                id: ticket.id,
+                name: ticket.name,
+                event: ticket.event,
+                seat: ticket.seat,
+                access: ticket.access,
+                phone: ticket.phone
+            });
+
+            new QRious({
+                element: document.getElementById('qrCanvas'),
+                value: qrPayload,
+                size: 500, // High definition render size for Retina displays
+                level: 'H',
+                foreground: '#0f172a'
+            });
+        }
+
+        function saveTicketToDb(ticket) {
+            const existingIdx = ticketsDatabase.findIndex(t => t.id === ticket.id);
+            if (existingIdx >= 0) {
+                ticketsDatabase[existingIdx] = ticket;
+            } else {
+                ticketsDatabase.unshift(ticket);
+            }
+            localStorage.setItem('passcheck_tickets', JSON.stringify(ticketsDatabase));
+            updatePassBadge();
+        }
+
+        function updatePassBadge() {
+            document.getElementById('passCountBadge').innerText = ticketsDatabase.length;
+        }
+
+        /* ===================================================================
+           TICKET LIST & INDIVIDUAL DELETE MANAGEMENT
+           =================================================================== */
+        function renderTicketsList() {
+            const container = document.getElementById('ticketsListContainer');
+            if (ticketsDatabase.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center text-xs text-slate-400">
+                        <i class="fa-solid fa-ticket-simple text-3xl mb-2 opacity-50"></i>
+                        <p>No tickets issued yet. Create your first QR pass!</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = ticketsDatabase.map(t => `
+                <div class="ios-list-row p-3 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <div class="space-y-0.5 max-w-[65%]">
+                        <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                            <span class="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">${escapeHtml(t.name)}</span>
+                            <span class="text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${t.access.includes('VIP') ? 'bg-amber-400 text-black' : 'bg-blue-500 text-white'}">
+                                ${escapeHtml(t.access)}
+                            </span>
+                        </div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                            ${escapeHtml(t.event)} • ${escapeHtml(t.seat)}
+                        </div>
+                        <div class="font-mono text-[10px] text-slate-400">
+                            ID: ${t.id}
+                        </div>
+                    </div>
+
+                    <div class="text-right flex items-center space-x-2">
+                        <div class="space-y-1">
+                            ${t.checkedIn ? 
+                                `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold block">
+                                    <i class="fa-solid fa-check mr-1"></i> Checked In
+                                 </span>` : 
+                                `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold block">
+                                    Unused
+                                 </span>`
+                            }
+                            <button onclick="viewTicketDetails('${t.id}')" class="text-xs text-blue-600 dark:text-blue-400 font-bold underline">
+                                View Pass
+                            </button>
+                        </div>
+                        
+                        <!-- Individual Delete Button -->
+                        <button onclick="deleteSingleTicket('${t.id}')" title="Delete Ticket" class="p-2 text-slate-400 hover:text-red-500 text-sm">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteSingleTicket(ticketId) {
+            if (confirm(`Delete ticket ID: ${ticketId}?`)) {
+                ticketsDatabase = ticketsDatabase.filter(t => t.id !== ticketId);
+                localStorage.setItem('passcheck_tickets', JSON.stringify(ticketsDatabase));
+                renderTicketsList();
+                updatePassBadge();
+
+                // If active preview ticket was deleted, reload previous or generate clean
+                if (currentTicket && currentTicket.id === ticketId) {
+                    if (ticketsDatabase.length > 0) {
+                        renderTicketPreview(ticketsDatabase[0]);
+                    } else {
+                        generatePassbookTicket();
+                    }
+                }
+            }
+        }
+
+        function clearAllTickets() {
+            if (confirm("Are you sure you want to clear all issued tickets?")) {
+                ticketsDatabase = [];
+                localStorage.setItem('passcheck_tickets', JSON.stringify([]));
+                renderTicketsList();
+                updatePassBadge();
+                generatePassbookTicket();
+            }
+        }
+
+        /* ===================================================================
+           TICKET SHARING & DOWNLOAD API
+           =================================================================== */
+        async function shareTicket() {
+            if (!currentTicket) return;
+            const shareText = `🎟️ PassCheck Event Ticket\nEvent: ${currentTicket.event}\nAttendee: ${currentTicket.name}\nSeat: ${currentTicket.seat}\nTicket ID: ${currentTicket.id}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: currentTicket.event,
+                        text: shareText
+                    });
+                } catch(e) {
+                    console.log('Share canceled or error', e);
+                }
+            } else {
+                copyToClipboard(shareText);
+                alert("Ticket summary copied to clipboard!");
+            }
+        }
+
+        function downloadTicketImage() {
+            const canvas = document.getElementById('qrCanvas');
+            const imageURI = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `${currentTicket ? currentTicket.id : 'PassCheck-QR'}.png`;
+            link.href = imageURI;
+            link.click();
+        }
+
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+
+        /* ===================================================================
+           CAMERA & SCANNER ENGINE (JSQR INTEGRATION)
+           =================================================================== */
+        function setScanMode(mode) {
+            scanMode = mode;
+            document.getElementById('btnModeQuick').className = mode === 'quick' ? 'ios-btn ios-btn-blue py-1.5 text-xs' : 'ios-btn ios-btn-silver py-1.5 text-xs';
+            document.getElementById('btnModeDetail').className = mode === 'detail' ? 'ios-btn ios-btn-blue py-1.5 text-xs' : 'ios-btn ios-btn-silver py-1.5 text-xs';
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('cameraVideo');
+            try {
+                if (cameraStream) stopCamera();
+
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: activeFacingMode }
+                });
+                video.srcObject = cameraStream;
+                video.setAttribute('playsinline', true);
+                video.play();
+
+                scanningActive = true;
+                requestAnimationFrame(scanTick);
+                document.getElementById('scanStatusIndicator').innerText = "Scanning Active";
+                document.getElementById('scanStatusIndicator').className = "text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold";
+            } catch (err) {
+                console.error("Camera access error:", err);
+                document.getElementById('scanStatusIndicator').innerText = "Camera Denied";
+                document.getElementById('scanStatusIndicator').className = "text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold";
+            }
+        }
+
+        function stopCamera() {
+            scanningActive = false;
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+
+        function switchCamera() {
+            activeFacingMode = activeFacingMode === 'environment' ? 'user' : 'environment';
+            startCamera();
+        }
+
+        function toggleTorch() {
+            if (cameraStream) {
+                const track = cameraStream.getVideoTracks()[0];
+                if (track && track.getCapabilities && track.getCapabilities().torch) {
+                    isTorchOn = !isTorchOn;
+                    track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+                }
+            }
+        }
+
+        function scanTick() {
+            if (!scanningActive) return;
+
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('scanCanvas');
+            const ctx = canvas.getContext('2d');
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    handleDecodedQR(code.data);
+                    scanningActive = false;
+                    setTimeout(() => { scanningActive = true; requestAnimationFrame(scanTick); }, 2500);
+                    return;
+                }
+            }
+
+            requestAnimationFrame(scanTick);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.getElementById('scanCanvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (code) {
+                        handleDecodedQR(code.data);
+                    } else {
+                        alert("No valid QR code detected in the image.");
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /* ===================================================================
+           GATEKEEPER VERIFICATION LOGIC & RESULTS HUD
+           =================================================================== */
+        function handleDecodedQR(rawPayload) {
+            let parsedData = null;
+            try {
+                parsedData = JSON.parse(rawPayload);
+            } catch(e) {
+                parsedData = { id: rawPayload, name: "Raw QR Code", event: "External Code", access: "Standard", seat: "N/A" };
+            }
+
+            document.getElementById('lastScannedBar').classList.remove('hidden');
+            document.getElementById('lastScannedText').innerText = `${parsedData.name || 'QR'} [ID: ${parsedData.id || 'N/A'}]`;
+
+            let matchedPass = ticketsDatabase.find(t => t.id === parsedData.id);
+
+            if (scanMode === 'quick') {
+                processQuickAccessGate(parsedData, matchedPass);
+            } else {
+                openDetailModal(matchedPass || parsedData);
+            }
+        }
+
+        function processQuickAccessGate(scannedData, matchedPass) {
+            const hud = document.getElementById('hudGateModal');
+            const iconContainer = document.getElementById('hudIconContainer');
+            const icon = document.getElementById('hudIcon');
+            const title = document.getElementById('hudTitle');
+            const subtitle = document.getElementById('hudSubtitle');
+
+            hud.classList.remove('hidden');
+
+            if (matchedPass) {
+                if (!matchedPass.checkedIn) {
+                    matchedPass.checkedIn = true;
+                    matchedPass.checkInTime = new Date().toLocaleTimeString();
+                    saveTicketToDb(matchedPass);
+
+                    iconContainer.className = "w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-lg border-2 bg-emerald-500/20 border-emerald-400 text-emerald-400";
+                    icon.className = "fa-solid fa-circle-check text-5xl text-emerald-400";
+                    title.innerText = "ACCESS GRANTED";
+                    title.className = "text-xl font-extrabold text-emerald-400 tracking-wide";
+                    subtitle.innerText = "Ticket Verified & Checked-In";
+
+                    playChime('success');
+                } else {
+                    iconContainer.className = "w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-lg border-2 bg-red-500/20 border-red-500 text-red-500";
+                    icon.className = "fa-solid fa-triangle-exclamation text-5xl text-red-500";
+                    title.innerText = "ALREADY CHECKED IN";
+                    title.className = "text-xl font-extrabold text-red-500 tracking-wide";
+                    subtitle.innerText = `Checked in at ${matchedPass.checkInTime || 'Earlier'}`;
+
+                    playChime('error');
+                }
+
+                document.getElementById('hudName').innerText = matchedPass.name;
+                document.getElementById('hudSeat').innerText = matchedPass.seat;
+                document.getElementById('hudAccess').innerText = matchedPass.access;
+                document.getElementById('hudTicketId').innerText = matchedPass.id;
+            } else {
+                iconContainer.className = "w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-lg border-2 bg-amber-500/20 border-amber-400 text-amber-400";
+                icon.className = "fa-solid fa-circle-question text-5xl text-amber-400";
+                title.innerText = "UNKNOWN TICKET";
+                title.className = "text-xl font-extrabold text-amber-400 tracking-wide";
+                subtitle.innerText = "Valid QR Code format, but not in local DB";
+
+                document.getElementById('hudName').innerText = scannedData.name || 'Guest';
+                document.getElementById('hudSeat').innerText = scannedData.seat || 'N/A';
+                document.getElementById('hudAccess').innerText = scannedData.access || 'N/A';
+                document.getElementById('hudTicketId').innerText = scannedData.id || 'External';
+
+                playChime('error');
+            }
+
+            setTimeout(() => {
+                closeHudModal();
+            }, 2800);
+        }
+
+        function closeHudModal() {
+            document.getElementById('hudGateModal').classList.add('hidden');
+        }
+
+        /* ===================================================================
+           FULL DETAILS POPUP MODAL & MODAL DELETION
+           =================================================================== */
+        function viewTicketDetails(ticketId) {
+            const pass = ticketsDatabase.find(t => t.id === ticketId);
+            if (pass) {
+                openDetailModal(pass);
+            }
+        }
+
+        function openDetailModal(pass) {
+            activeModalTicket = pass;
+            const container = document.getElementById('modalTicketCard');
+            const checkInBtn = document.getElementById('modalCheckInBtn');
+
+            container.innerHTML = `
+                <div class="ios-passbook-ticket p-4 space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] text-blue-300 font-bold block uppercase tracking-widest">${escapeHtml(pass.event || 'EVENT PASS')}</span>
+                            <h4 class="font-bold text-white text-base">${escapeHtml(pass.name || 'Attendee')}</h4>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-400 text-black rounded">
+                            ${escapeHtml(pass.access || 'VIP')}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs text-slate-200">
+                        <div><span class="text-slate-400 block text-[10px]">PHONE</span> ${escapeHtml(pass.phone || 'N/A')}</div>
+                        <div><span class="text-slate-400 block text-[10px]">SEAT</span> ${escapeHtml(pass.seat || 'N/A')}</div>
+                        <div><span class="text-slate-400 block text-[10px]">TICKET ID</span> <span class="font-mono">${pass.id}</span></div>
+                        <div><span class="text-slate-400 block text-[10px]">STATUS</span> 
+                            <strong class="${pass.checkedIn ? 'text-emerald-400' : 'text-amber-400'}">
+                                ${pass.checkedIn ? 'Checked-In' : 'Unused'}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (pass.checkedIn) {
+                checkInBtn.className = "ios-btn ios-btn-red w-full py-2.5 text-xs";
+                checkInBtn.innerHTML = `<i class="fa-solid fa-rotate-left mr-1.5"></i> Undo Check-In`;
+            } else {
+                checkInBtn.className = "ios-btn ios-btn-green w-full py-2.5 text-xs";
+                checkInBtn.innerHTML = `<i class="fa-solid fa-check-double mr-1.5"></i> Check-In Attendee`;
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function toggleModalCheckIn() {
+            if (!activeModalTicket) return;
+
+            activeModalTicket.checkedIn = !activeModalTicket.checkedIn;
+            activeModalTicket.checkInTime = activeModalTicket.checkedIn ? new Date().toLocaleTimeString() : null;
+
+            saveTicketToDb(activeModalTicket);
+            renderTicketsList();
+            closeDetailModal();
+
+            if (activeModalTicket.checkedIn) {
+                playChime('success');
+            }
+        }
+
+        function deleteActiveModalTicket() {
+            if (!activeModalTicket) return;
+            const targetId = activeModalTicket.id;
+            closeDetailModal();
+            deleteSingleTicket(targetId);
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /* ===================================================================
+           PWA SERVICE WORKER & OFFLINE CACHE CONTROLLER
+           =================================================================== */
+        function initPwaAndOfflineWorker() {
+            if ('serviceWorker' in navigator) {
+                // 1. First try registering standard external sw.js file
+                navigator.serviceWorker.register('sw.js').then((reg) => {
+                    console.log('PassCheck SW registered successfully:', reg.scope);
+                }).catch(() => {
+                    // 2. Fallback Blob ServiceWorker for seamless offline running in hosted previews
+                    const swContent = `
+                        const CACHE_NAME = 'passcheck-v2';
+                        const ASSETS = [
+                            './',
+                            'https://cdn.tailwindcss.com',
+                            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                            'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
+                            'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
+                        ];
+
+                        self.addEventListener('install', (e) => {
+                            e.waitUntil(
+                                caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+                            );
+                        });
+
+                        self.addEventListener('activate', (e) => {
+                            e.waitUntil(
+                                caches.keys().then((keys) => {
+                                    return Promise.all(keys.map((k) => k !== CACHE_NAME && caches.delete(k)));
+                                }).then(() => self.clients.claim())
+                            );
+                        });
+
+                        self.addEventListener('fetch', (e) => {
+                            e.respondWith(
+                                caches.match(e.request).then((res) => {
+                                    return res || fetch(e.request).then((fetchRes) => {
+                                        return caches.open(CACHE_NAME).then((cache) => {
+                                            cache.put(e.request, fetchRes.clone());
+                                            return fetchRes;
+                                        });
+                                    });
+                                }).catch(() => caches.match('./'))
+                            );
+                        });
+                    `;
+                    const blob = new Blob([swContent], { type: 'application/javascript' });
+                    const blobURL = URL.createObjectURL(blob);
+                    navigator.serviceWorker.register(blobURL).catch(e => console.log('SW setup completed.', e));
+                });
+            }
+        }
+
+        // PWA Installation Hook
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPWAInstallPrompt = e;
+            document.getElementById('pwaInstallBtn').classList.remove('hidden');
+        });
+
+        function installPWA() {
+            if (deferredPWAInstallPrompt) {
+                deferredPWAInstallPrompt.prompt();
+                deferredPWAInstallPrompt.userChoice.then(() => {
+                    deferredPWAInstallPrompt = null;
+                    document.getElementById('pwaInstallBtn').classList.add('hidden');
+                });
+            }
+        }
+
+        /* ===================================================================
+           INITIALIZATION ON LOAD (PREVENTS DUPLICATE REGISTRATION)
+           =================================================================== */
+        window.onload = function() {
+            // Restore latest existing ticket without re-registering duplicates on reload
+            if (ticketsDatabase.length > 0) {
+                renderTicketPreview(ticketsDatabase[0]);
+            } else {
+                // Only generate a initial default ticket if the database is brand new
+                generatePassbookTicket();
+            }
+
+            updatePassBadge();
+            initPwaAndOfflineWorker();
+        };
+    </script>
+</body>
+</html>
