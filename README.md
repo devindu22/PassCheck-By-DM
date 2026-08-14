@@ -154,3 +154,13 @@ Browsers restrict live camera access (`navigator.mediaDevices.getUserMedia`) to 
 This project is open-source and available under the [MIT License](https://www.google.com/search?q=LICENSE).
 
 ---
+
+## Screenshots
+
+<img width="1901" height="915" alt="Screenshot 2026-08-12 215221" src="https://github.com/user-attachments/assets/e5c676c0-3e93-42b6-9511-adae31d195a7" />
+
+<img width="1904" height="918" alt="Screenshot 2026-08-12 215200" src="https://github.com/user-attachments/assets/9c4bd5a8-da08-489b-93cb-40f74649d560" />
+
+<img width="1903" height="917" alt="Screenshot 2026-08-12 215211" src="https://github.com/user-attachments/assets/308bc62d-9ca9-4919-9f46-3133b02e3381" />
+
+<img width="1901" height="915" alt="Screenshot 2026-08-12 215231" src="https://github.com/user-attachments/assets/d2b376f8-13ef-49ad-ab48-0ab4bfdf5f4a" />
